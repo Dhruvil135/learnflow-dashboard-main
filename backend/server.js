@@ -53,7 +53,7 @@ io.on('connection', (socket) => {
   // User registration
   socket.on('register', (data) => {
     const { userId, role } = data;
-    
+
     console.log('👤 User registered:', { userId, role, socketId: socket.id });
 
     // Join role-based rooms
@@ -71,7 +71,7 @@ io.on('connection', (socket) => {
     const roomName = `instructor-${instructorId}`;
     socket.join(roomName);
     console.log(`🏠 Instructor joined room: ${roomName}`);
-    
+
     // Confirm room join
     socket.emit('roomJoined', { room: roomName });
   });
@@ -123,20 +123,20 @@ mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => {
-  console.log('✅ MongoDB connected successfully');
-  console.log(`📊 Database: ${mongoose.connection.name}`);
-})
-.catch(err => {
-  console.error('❌ MongoDB connection error:', err.message);
-  process.exit(1);
-});
+  .then(() => {
+    console.log('✅ MongoDB connected successfully');
+    console.log(`📊 Database: ${mongoose.connection.name}`);
+  })
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err.message);
+    process.exit(1);
+  });
 
 // ===========================
 // HEALTH CHECK
 // ===========================
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'success',
     message: 'SkillForge API is running',
     version: '1.0.0',
@@ -168,6 +168,17 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/download', downloadRoutes);
 app.use('/api/certificates', certificateRoutes);
+
+// ===========================
+// HEALTH CHECK ENDPOINT (for Render)
+// ===========================
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    message: 'SkillForge API is running',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // ===========================
 // 404 HANDLER (Undefined Routes)
