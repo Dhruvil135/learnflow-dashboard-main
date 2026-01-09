@@ -300,21 +300,8 @@ export default function CourseDetail() {
       const newStatus = course.status === 'published' ? 'draft' : 'published';
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/courses/${course._id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to update course status');
-      }
-
-      const result = await response.json();
+      const response = await api.patch(`/courses/${course._id}`, { status: newStatus });
+      const result = response.data;
       console.log('✅ Publish response:', result);
 
       setCourse({ ...course, status: newStatus });
@@ -332,33 +319,11 @@ export default function CourseDetail() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/courses/${course._id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.delete(`/courses/${course._id}`);
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        try {
-          const jsonError = JSON.parse(errorData);
-          throw new Error(jsonError.message || 'Failed to delete course');
-        } catch {
-          throw new Error('Failed to delete course');
-        }
-      }
+      // Axios throws on non-2xx by default, so if we get here, it succeeded.
+      // 204 No Content is common for DELETE calls
 
-      const contentType = response.headers.get('content-type');
-      const text = await response.text();
-
-      if (text && contentType?.includes('application/json')) {
-        try {
-          JSON.parse(text);
-        } catch (e) {
-          console.log('Response was not JSON, but delete succeeded');
-        }
-      }
 
       toast.success('Course deleted successfully');
       navigate('/instructor');
@@ -376,16 +341,7 @@ export default function CourseDetail() {
     setDeletingLesson(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/lessons/${deleteLessonId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete lesson');
-      }
+      await api.delete(`/lessons/${deleteLessonId}`);
 
       toast.success('Lesson deleted successfully');
 
